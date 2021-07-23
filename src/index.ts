@@ -18,6 +18,7 @@ export interface IformattedWordObject {
   punctuation: string;
   fullWord: string;
   answers: string[];
+  hasPunctuation: boolean;
 }
 // todo refactor long ass function
 // todo do submit
@@ -28,7 +29,7 @@ export interface handleWordTypesProps {
   fullWord: string;
 }
 
-const setWordTypeInObject = (
+const setWordType = (
   word: string,
   formattedWordObj: Partial<IformattedWordObject>
 ) => {
@@ -46,21 +47,46 @@ const getFullWordWithoutPrefix = (word: string) => {
   return word;
 };
 
-const getFormattedObject = (splitParagraph: string[]) => {
+const setHasPunctuationInWord = (
+  word: string,
+  formattedWordObj: Partial<IformattedWordObject>
+) => {
+  if (word.endsWith("@punctuation")) {
+    formattedWordObj.hasPunctuation = true;
+  } else {
+    formattedWordObj.hasPunctuation = false;
+  }
+};
+
+// const getFullWordWithoutSuffix = (word: string) => {
+//   if (word.endsWith("@punctuation")) {
+//     return word.replace("@punctuation", "");
+//   }
+
+//   return word;
+// };
+
+// const setPunctuationInObject = () => {
+//   if (fullWord.endsWith("@punctuation")) {
+//     fullWord = fullWord.replace("@punctuation", "");
+//     const lastIndex = fullWord.length - 1;
+//     const wordWithoutPunctuation = fullWord.substring(0, lastIndex);
+//     formattedWordObj.punctuation = fullWord.charAt(lastIndex);
+//     fullWord = wordWithoutPunctuation;
+//   } else {
+//     formattedWordObj.punctuation = "";
+//   }
+// };
+
+const getFormattedObjects = (
+  splitParagraph: string[]
+): IformattedWordObject[] => {
   const formattedWords = splitParagraph.map((word) => {
     const formattedWordObj = {} as Partial<IformattedWordObject>;
-    setWordTypeInObject(word, formattedWordObj);
+    setWordType(word, formattedWordObj);
 
     let fullWord = getFullWordWithoutPrefix(word);
-    let returnedWord: string = "";
-
-    // if (word.startsWith("@split")) {
-    //   formattedWordObj.wordType = "split";
-    //   fullWord = word.replace("@split", "");
-    // } else {
-    //   formattedWordObj.wordType = "whole";
-    //   fullWord = word;
-    // }
+    setHasPunctuationInWord(fullWord, formattedWordObj);
 
     if (fullWord.endsWith("@punctuation")) {
       fullWord = fullWord.replace("@punctuation", "");
@@ -83,16 +109,14 @@ const getFormattedObject = (splitParagraph: string[]) => {
       formattedWordObj.answers = [secondPartOfWord];
       formattedWordObj.lineLength = secondPartOfWord.length + 1;
     } else {
-      returnedWord = fullWord;
       formattedWordObj.answers = [""];
       formattedWordObj.lineLength = 0;
-      formattedWordObj.returnedWord = returnedWord;
+      formattedWordObj.returnedWord = fullWord;
     }
 
     formattedWordObj.fullWord = fullWord;
 
-    // remember to do type casting
-    return formattedWordObj;
+    return formattedWordObj as IformattedWordObject;
   });
 
   return formattedWords;
@@ -100,7 +124,7 @@ const getFormattedObject = (splitParagraph: string[]) => {
 
 const returnWordObject = (paragraph: string) => {
   const splitParagraph = paragraph.replace(/(\r\n|\n|\r)/gm, " ").split(" ");
-  const formattedWords = getFormattedObject(splitParagraph);
+  const formattedWords = getFormattedObjects(splitParagraph);
   return formattedWords;
 };
 
